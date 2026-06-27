@@ -1,5 +1,6 @@
 package com.teasound.teasound_api.controller;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import com.teasound.teasound_api.domain.User;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,14 +39,28 @@ public class AuthController {
      * Frontend gọi endpoint này để biết user đã đăng nhập chưa.
      */
     @GetMapping("/me")
-    public ResponseEntity<?> getCurrentUser(@AuthenticationPrincipal OAuth2User principal) {
-        if (principal == null) {
-            return ResponseEntity.status(401).body(Map.of("authenticated", false));
+    public ResponseEntity<?> getCurrentUser(
+            @AuthenticationPrincipal OAuth2User oAuth2Principal,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        if (oAuth2Principal != null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("authenticated", true);
+            response.put("name", oAuth2Principal.getAttribute("name"));
+            response.put("email", oAuth2Principal.getAttribute("email"));
+            return ResponseEntity.ok(response);
         }
-        return ResponseEntity.ok(Map.of(
-                "authenticated", true,
-                "name", principal.getAttribute("name"),
-                "email", principal.getAttribute("email")));
+
+        if (userDetails != null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("authenticated", true);
+            response.put("email", userDetails.getUsername());
+            return ResponseEntity.ok(response);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("authenticated", false);
+        return ResponseEntity.status(401).body(response);
     }
 
     @PostMapping(value = "/register", consumes = org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE)

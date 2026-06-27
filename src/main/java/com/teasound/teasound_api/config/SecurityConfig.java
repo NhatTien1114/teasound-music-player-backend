@@ -42,10 +42,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable()) // REST API không cần CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**").permitAll()   // API công khai (nhạc, tìm kiếm, ...)
-                        .requestMatchers("/api/auth/**").permitAll()     // API đăng nhập/đăng ký
+                        .requestMatchers("/api/public/**").permitAll() // API công khai (nhạc, tìm kiếm, ...)
+                        .requestMatchers("/api/auth/**").permitAll() // API đăng nhập/đăng ký
                         .requestMatchers("/api/user/**").authenticated() // API cần đăng nhập (playlist, yêu thích, ...)
-                        .anyRequest().permitAll())                       // Mặc định cho phép truy cập
+                        .anyRequest().permitAll()) // Mặc định cho phép truy cập
                 .formLogin(form -> form
                         .loginPage(frontendUrl + "/sign-in")
                         .loginProcessingUrl("/api/auth/login")
@@ -68,21 +68,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(frontendUrl));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+        config.setAllowedOrigins(List.of(frontendUrl)); // Cho phép frontend gọi về
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Cho phép các method
+        config.setAllowedHeaders(List.of("*")); // Cho phép mọi header
+        config.setAllowCredentials(true); // Cho phép gửi cookie/session qua cross-domain
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", config); // Áp dụng cho tất cả các route
         return source;
     }
 
     @Bean
     public AuthenticationManager authenticationManager(PasswordEncoder passwordEncoder) {
+        // Sử dụng userDetailsService để lấy thông tin user
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return new ProviderManager(provider);
+        provider.setPasswordEncoder(passwordEncoder); // Set password encoder cho provider
+        return new ProviderManager(provider); // Tạo AuthenticationManager từ provider
     }
 
     @Bean

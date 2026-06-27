@@ -22,10 +22,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-
-        // Note: Spring Security requires password to be not null for local login.
-        // We will assume passwords in DB are bcrypt encoded.
-        // Users who only signed up via Google might have null passwords.
         if (user.getPassword() == null) {
             throw new UsernameNotFoundException("User has no password (probably signed up via Google).");
         }
