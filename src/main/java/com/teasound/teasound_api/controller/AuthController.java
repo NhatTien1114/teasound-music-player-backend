@@ -2,6 +2,7 @@ package com.teasound.teasound_api.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import com.teasound.teasound_api.domain.User;
 import com.teasound.teasound_api.repository.UserRepository;
@@ -43,19 +44,32 @@ public class AuthController {
             @AuthenticationPrincipal OAuth2User oAuth2Principal,
             @AuthenticationPrincipal UserDetails userDetails) {
 
+        String email = null;
         if (oAuth2Principal != null) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("authenticated", true);
-            response.put("name", oAuth2Principal.getAttribute("name"));
-            response.put("email", oAuth2Principal.getAttribute("email"));
-            return ResponseEntity.ok(response);
+            email = oAuth2Principal.getAttribute("email");
+        } else if (userDetails != null) {
+            email = userDetails.getUsername();
         }
 
-        if (userDetails != null) {
-            Map<String, Object> response = new HashMap<>();
-            response.put("authenticated", true);
-            response.put("email", userDetails.getUsername());
-            return ResponseEntity.ok(response);
+        if (email != null) {
+            Optional<User> userOptional = userRepository.findByEmail(email);
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                Map<String, Object> response = new HashMap<>();
+                response.put("authenticated", true);
+                response.put("email", user.getEmail());
+                response.put("name", user.getDisplayName());
+                response.put("avatarUrl", user.getAvatarUrl());
+                response.put("role", user.getRole().name());
+                return ResponseEntity.ok(response);
+            } else if (oAuth2Principal != null) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("authenticated", true);
+                response.put("name", oAuth2Principal.getAttribute("name"));
+                response.put("email", oAuth2Principal.getAttribute("email"));
+                response.put("avatarUrl", oAuth2Principal.getAttribute("picture"));
+                return ResponseEntity.ok(response);
+            }
         }
 
         Map<String, Object> response = new HashMap<>();
