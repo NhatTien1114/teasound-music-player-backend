@@ -1,5 +1,8 @@
 package com.teasound.teasound_api.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +21,11 @@ public class SongService {
     public SongDTO createSong(Song song) {
         Song savedSong = songRepository.save(song);
         return new SongDTO(savedSong);
+    }
+
+    public List<SongDTO> getAllSongs() {
+        List<Song> songs = songRepository.findAll();
+        return songs.stream().map(SongDTO::new).collect(Collectors.toList());
     }
 
 }
