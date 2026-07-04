@@ -3,6 +3,9 @@ package com.teasound.teasound_api.config;
 import java.util.List;
 
 import com.teasound.teasound_api.service.CustomOAuth2UserService;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -60,7 +63,13 @@ public class SecurityConfig {
                         .failureUrl(frontendUrl + "/sign-in?error=true"))
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
-                        .logoutSuccessUrl(frontendUrl + "/sign-in")
+                        .logoutSuccessHandler((request, response, authentication) -> {
+                            response.setStatus(HttpServletResponse.SC_OK);
+                            response.setContentType("application/json");
+                            response.getWriter().write("{\"message\":\"Logged out\"}");
+                        })
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID", "remember-me")
                         .permitAll());
         return http.build();
     }
