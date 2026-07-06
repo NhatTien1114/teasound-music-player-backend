@@ -28,4 +28,29 @@ public class SongService {
         return songs.stream().map(SongDTO::new).collect(Collectors.toList());
     }
 
+    public SongDTO updateSong(Song updatedSong) {
+        Song existSong = songRepository.findById(updatedSong.getId()).orElse(null);
+        if (existSong == null) {
+            return null;
+        }
+        existSong.setName(updatedSong.getName());
+        existSong.setDescription(updatedSong.getDescription());
+        existSong.setType(updatedSong.getType());
+        existSong.setAuthor(updatedSong.getAuthor());
+        existSong.setVideoUrl(updatedSong.getVideoUrl());
+        existSong.setAudioUrl(updatedSong.getAudioUrl());
+        existSong.setThumbnailUrl(updatedSong.getThumbnailUrl());
+        existSong.setDuration(updatedSong.getDuration());
+        Song savedSong = songRepository.save(existSong);
+        return new SongDTO(savedSong);
+    }
+
+    public SongDTO findSongById(Long id) {
+        Song song = songRepository.findById(id).orElse(null);
+        if (song == null) {
+            return null;
+        }
+        return new SongDTO(song);
+    }
+
 }

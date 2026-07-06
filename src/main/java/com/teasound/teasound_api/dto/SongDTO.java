@@ -24,10 +24,13 @@ public class SongDTO {
 
     public SongDTO(Song song) {
         if (song != null) {
+            this.id = song.getId();
             this.name = song.getName();
             this.description = song.getDescription();
             this.type = song.getType();
-            this.authorId = song.getAuthor().getId();
+            if (song.getAuthor() != null) {
+                this.authorId = song.getAuthor().getId();
+            }
             this.videoUrl = song.getVideoUrl();
             this.audioUrl = song.getAudioUrl();
             this.thumbnailUrl = song.getThumbnailUrl();

@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,18 @@ class SongController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/update")
+    public ResponseEntity<SongDTO> updateSong(@RequestBody Song song) {
+        SongDTO updatedSong = songService.updateSong(song);
+        return ResponseEntity.ok(updatedSong);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<SongDTO> getSongById(@PathVariable Long id) {
+        SongDTO song = songService.findSongById(id);
+        return ResponseEntity.ok(song);
+    }
+
     @GetMapping
     public ResponseEntity<List<SongDTO>> getAllSongs() {
         List<SongDTO> songs = songService.getAllSongs();
