@@ -61,6 +61,7 @@ public class AuthController {
                 response.put("name", user.getDisplayName());
                 response.put("avatarUrl", user.getAvatarUrl());
                 response.put("role", user.getRole().name());
+                response.put("createdAt", user.getCreatedAt());
                 return ResponseEntity.ok(response);
             } else if (oAuth2Principal != null) {
                 Map<String, Object> response = new HashMap<>();
