@@ -11,12 +11,14 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/authors")
@@ -37,4 +39,15 @@ public class AuthorController {
         List<AuthorDTO> authors = authorService.getAllAuthor();
         return ResponseEntity.ok(authors);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/paginated")
+    public ResponseEntity<Page<AuthorDTO>> getAllAuthor(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int limit,
+            @RequestParam(defaultValue = "") String search) {
+        Page<AuthorDTO> authors = authorService.getAllAuthor(page, limit, search);
+        return ResponseEntity.ok(authors);
+    }
+
 }

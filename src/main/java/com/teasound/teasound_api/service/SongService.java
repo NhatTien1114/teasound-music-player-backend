@@ -4,6 +4,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.teasound.teasound_api.domain.Song;
@@ -26,6 +30,27 @@ public class SongService {
     public List<SongDTO> getAllSongs() {
         List<Song> songs = songRepository.findAll();
         return songs.stream().map(SongDTO::new).collect(Collectors.toList());
+    }
+
+    public Page<SongDTO> getAllSongs(int page, int limit, String search, String type) {
+        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "id"));
+
+        Page<Song> songPage;
+        if (type != null && !type.isEmpty()) {
+            try {
+                Song.Type songType = Song.Type.valueOf(type.toUpperCase());
+                songPage = songRepository.findByNameContainingIgnoreCaseAndType(
+                        search != null ? search : "", songType, pageable);
+            } catch (IllegalArgumentException e) {
+                songPage = songRepository.findByNameContainingIgnoreCase(
+                        search != null ? search : "", pageable);
+            }
+        } else {
+            songPage = songRepository.findByNameContainingIgnoreCase(
+                    search != null ? search : "", pageable);
+        }
+
+        return songPage.map(SongDTO::new);
     }
 
     public SongDTO updateSong(Song updatedSong) {
@@ -54,3 +79,4 @@ public class SongService {
     }
 
 }
+

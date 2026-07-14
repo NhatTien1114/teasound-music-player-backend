@@ -1,5 +1,9 @@
 package com.teasound.teasound_api.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +28,12 @@ public class AuthorService {
 
     public List<AuthorDTO> getAllAuthor() {
         return authorRepository.findAll().stream().map(AuthorDTO::new).collect(Collectors.toList());
+    }
+
+    public Page<AuthorDTO> getAllAuthor(int page, int limit, String search) {
+        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Author> authorPage = authorRepository.findByNameContainingIgnoreCase(search, pageable);
+        return authorPage.map(AuthorDTO::new);
     }
 
 }
