@@ -57,6 +57,7 @@ public class AuthController {
                 User user = userOptional.get();
                 Map<String, Object> response = new HashMap<>();
                 response.put("authenticated", true);
+                response.put("id", user.getId());
                 response.put("email", user.getEmail());
                 response.put("name", user.getDisplayName());
                 response.put("avatarUrl", user.getAvatarUrl());
