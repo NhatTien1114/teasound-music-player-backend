@@ -9,7 +9,9 @@ import com.teasound.teasound_api.domain.History;
 
 @Repository
 public interface HistoryRepository extends JpaRepository<History, Long> {
+    // Query (SELECT * from history WHERE user_id = ? ORDER BY played_at desc)
     List<History> findByUserIdOrderByPlayedAtDesc(Long userId);
 
+    // Query (SELECT * FROM history WHERE user_id = ? AND song_id = ?)
     History findByUserIdAndSongId(Long userId, Long songId);
 }
