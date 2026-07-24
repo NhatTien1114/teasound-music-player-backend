@@ -19,8 +19,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class SongService {
-    @Autowired
-    private SongRepository songRepository;
+    private final SongRepository songRepository;
 
     public SongDTO createSong(Song song) {
         Song savedSong = songRepository.save(song);
@@ -79,4 +78,3 @@ public class SongService {
     }
 
 }
-

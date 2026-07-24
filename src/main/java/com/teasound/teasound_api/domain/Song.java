@@ -30,7 +30,7 @@ public class Song {
     private Type type;
 
     @ManyToOne
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "author_id", nullable = false)
     private Author author;
 
     @Column(nullable = true)

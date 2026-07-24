@@ -23,10 +23,9 @@ import com.teasound.teasound_api.service.SongService;
 @RequestMapping("/api/songs")
 class SongController {
 
-    @Autowired
-    private SongService songService;
+    private final SongService songService;
 
-    public SongController(SongService songService) {
+    SongController(SongService songService) {
         this.songService = songService;
     }
 
