@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -25,6 +27,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${app.frontend-url}")
@@ -45,10 +48,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable()) // REST API không cần CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**").permitAll() // API công khai (nhạc, tìm kiếm, ...)
-                        .requestMatchers("/api/auth/**").permitAll() // API đăng nhập/đăng ký
-                        .requestMatchers("/api/user/**").authenticated() // API cần đăng nhập (playlist, yêu thích, ...)
-                        .anyRequest().permitAll()) // Mặc định cho phép truy cập
+                        .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/songs/**",
+                                "/api/authors/**", "/api/playlists/**", "/api/history/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/songs/**",
+                                "/api/authors/**", "/api/playlists/**", "/api/history/**")
+                        .hasRole("ADMIN")
+                        .anyRequest().authenticated()) // Mặc định cho phép truy cập
                 .formLogin(form -> form
                         .loginPage(frontendUrl + "/sign-in")
                         .loginProcessingUrl("/api/auth/login")
