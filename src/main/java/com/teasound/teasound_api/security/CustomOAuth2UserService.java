@@ -1,8 +1,10 @@
-package com.teasound.teasound_api.service;
+package com.teasound.teasound_api.security;
 
 import com.teasound.teasound_api.domain.User;
 import com.teasound.teasound_api.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
@@ -13,9 +15,10 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
-    @Autowired
-    private UserRepository userRepository;
+
+    private final UserRepository userRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -38,7 +41,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             if (!user.isActive()) {
                 throw new OAuth2AuthenticationException("User account is disabled");
             }
-
             if (user.getAvatarUrl() == null && picture != null) {
                 user.setAvatarUrl(picture);
                 userRepository.save(user);
@@ -56,6 +58,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             userRepository.save(user);
         }
 
-        return oAuth2User;
+        // Điểm mấu chốt: wrap lại thay vì trả oAuth2User gốc
+        return new CustomOAuth2User(oAuth2User, user);
     }
 }
