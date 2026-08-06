@@ -14,15 +14,19 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.teasound.teasound_api.security.CustomOAuth2UserService;
+import com.teasound.teasound_api.security.JwtAuthenticationFilter;
+import com.teasound.teasound_api.security.OAuth2LoginSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -30,73 +34,82 @@ import com.teasound.teasound_api.security.CustomOAuth2UserService;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${app.frontend-url}")
-    private String frontendUrl;
+        @Value("${app.frontend-url}")
+        private String frontendUrl;
 
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final UserDetailsService userDetailsService;
+        private final CustomOAuth2UserService customOAuth2UserService;
+        private final UserDetailsService userDetailsService;
+        private final JwtAuthenticationFilter jwtAuthenticationFilter;
+        private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable()) // REST API không cần CSRF
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/songs/**",
-                                "/api/authors/**", "/api/playlists/**", "/api/history/**")
-                        .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/songs/**",
-                                "/api/authors/**", "/api/playlists/**", "/api/history/**")
-                        .hasRole("ADMIN")
-                        .anyRequest().authenticated()) // Mặc định cho phép truy cập
-                .formLogin(form -> form
-                        .loginPage(frontendUrl + "/sign-in")
-                        .loginProcessingUrl("/api/auth/login")
-                        .defaultSuccessUrl(frontendUrl + "?login=success", true)
-                        .failureUrl(frontendUrl + "/sign-in?error=true")
-                        .permitAll())
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage(frontendUrl + "/sign-in")
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService)) // Sử dụng service xử lý Google User
-                        .defaultSuccessUrl(frontendUrl + "?login=success", true)
-                        .failureUrl(frontendUrl + "/sign-in?error=true"))
-                .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
-                        .logoutSuccessHandler((request, response, authentication) -> {
-                            response.setStatus(HttpServletResponse.SC_OK);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"message\":\"Logged out\"}");
-                        })
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "remember-me")
-                        .permitAll());
-        return http.build();
-    }
+        @Bean
+        public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+                http
+                                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                                .csrf(csrf -> csrf.disable())
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/api/songs/**",
+                                                                "/api/authors/**", "/api/playlists/**",
+                                                                "/api/history/**")
+                                                .permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/api/songs/**",
+                                                                "/api/authors/**", "/api/playlists/**")
+                                                .hasRole("ADMIN")
+                                                .anyRequest().authenticated())
+                                .oauth2Login(oauth2 -> oauth2
+                                                .loginPage(frontendUrl + "/sign-in")
+                                                .userInfoEndpoint(userInfo -> userInfo
+                                                                .userService(customOAuth2UserService))
+                                                .successHandler(oAuth2LoginSuccessHandler)
+                                                .failureUrl(frontendUrl + "/sign-in?error=oauth2_failed"))
+                                .exceptionHandling(exceptions -> exceptions
+                                                .authenticationEntryPoint((request, response, authException) -> {
+                                                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                                                        response.setContentType("application/json");
+                                                        response.getWriter()
+                                                                        .write("{\"error\":\"Unauthorized\",\"message\":\"Bạn cần đăng nhập\"}");
+                                                }))
+                                .logout(logout -> logout
+                                                .logoutUrl("/api/auth/logout")
+                                                .logoutSuccessHandler((request, response, authentication) -> {
+                                                        response.setStatus(HttpServletResponse.SC_OK);
+                                                        response.setContentType("application/json");
+                                                        response.getWriter().write("{\"message\":\"Logged out\"}");
+                                                })
+                                                .invalidateHttpSession(true)
+                                                .deleteCookies("JSESSIONID")
+                                                .permitAll())
+                                .addFilterBefore(jwtAuthenticationFilter,
+                                                UsernamePasswordAuthenticationFilter.class);
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(frontendUrl)); // Cho phép frontend gọi về
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Cho phép các method
-        config.setAllowedHeaders(List.of("*")); // Cho phép mọi header
-        config.setAllowCredentials(true); // Cho phép gửi cookie/session qua cross-domain
+                return http.build();
+        }
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // Áp dụng cho tất cả các route
-        return source;
-    }
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration config = new CorsConfiguration();
+                config.setAllowedOrigins(List.of(frontendUrl));
+                config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                config.setAllowedHeaders(List.of("*"));
+                config.setAllowCredentials(true);
 
-    @Bean
-    public AuthenticationManager authenticationManager(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return new ProviderManager(provider);
-    }
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", config); // Áp dụng cho tất cả các route
+                return source;
+        }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder(); // BCrypt mặc định
-    }
+        @Bean
+        public AuthenticationManager authenticationManager(PasswordEncoder passwordEncoder) {
+                DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+                provider.setPasswordEncoder(passwordEncoder);
+                return new ProviderManager(provider);
+        }
+
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return PasswordEncoderFactories.createDelegatingPasswordEncoder(); // BCrypt mặc định
+        }
 }
