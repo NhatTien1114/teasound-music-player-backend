@@ -2,7 +2,6 @@ package com.teasound.teasound_api.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +18,11 @@ import com.teasound.teasound_api.domain.Song;
 import com.teasound.teasound_api.dto.SongDTO;
 import com.teasound.teasound_api.service.SongService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
 @RequestMapping("/api/songs")
+@Slf4j
 class SongController {
 
     private final SongService songService;
@@ -32,6 +34,10 @@ class SongController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<SongDTO> createSong(@RequestBody Song song) {
+        log.info("Received Song object to create: {}", song);
+        if (song.getAuthor() != null) {
+            log.info("Author ID: {}", song.getAuthor().getId());
+        }
         SongDTO savedSong = songService.createSong(song);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedSong);
     }
@@ -39,6 +45,7 @@ class SongController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/update")
     public ResponseEntity<SongDTO> updateSong(@RequestBody Song song) {
+        log.info("Received Song object to update: {}", song);
         SongDTO updatedSong = songService.updateSong(song);
         return ResponseEntity.ok(updatedSong);
     }

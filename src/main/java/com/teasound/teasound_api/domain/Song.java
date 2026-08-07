@@ -10,20 +10,28 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Table(name = "songs")
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@ToString
 public class Song {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private String description;
-    private boolean isPublic;
+    private boolean isPublic = true;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -42,8 +50,8 @@ public class Song {
     @Column(nullable = false)
     private String thumbnailUrl;
     private String duration;
-    private Long likeCount;
-    private Long viewCount;
+    private Long likeCount = 0L;
+    private Long viewCount = 0L;
 
     public enum Type {
         POP,

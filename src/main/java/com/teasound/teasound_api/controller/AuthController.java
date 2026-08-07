@@ -40,7 +40,8 @@ public class AuthController {
 
     /**
      * Trao đổi token sau khi Google OAuth2 login:
-     * Đọc token từ HttpOnly Cookie "oauth2_token", xóa cookie đó và trả token về JSON cho frontend.
+     * Đọc token từ HttpOnly Cookie "oauth2_token", xóa cookie đó và trả token về
+     * JSON cho frontend.
      */
     @PostMapping("/token-exchange")
     public ResponseEntity<?> exchangeOAuth2Token(
@@ -166,14 +167,16 @@ public class AuthController {
     }
 
     /**
-     * Đăng ký user mới → trả JSON response (không redirect).
+     * Đăng ký user mới → trả JSON response (sau khi thành công frontend sẽ chuyển sang trang login).
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody LoginRequest registerRequest) {
         String email = registerRequest.getEmail();
         String password = registerRequest.getPassword();
+        String displayName = registerRequest.getDisplayName();
+        String phoneNumber = registerRequest.getPhoneNumber();
 
-        if (email == null || password == null) {
+        if (email == null || password == null || email.isBlank() || password.isBlank()) {
             Map<String, Object> error = new HashMap<>();
             error.put("error", "Missing fields");
             error.put("message", "Email và mật khẩu là bắt buộc");
@@ -191,7 +194,8 @@ public class AuthController {
         // Tạo user mới
         User user = User.builder()
                 .email(email)
-                .displayName(email.split("@")[0]) // Dùng phần trước @ làm displayName tạm
+                .displayName(displayName != null && !displayName.isBlank() ? displayName : email.split("@")[0])
+                .phoneNumber(phoneNumber)
                 .password(passwordEncoder.encode(password))
                 .role(User.Role.USER)
                 .authProvider(User.AuthProvider.LOCAL)
@@ -201,16 +205,9 @@ public class AuthController {
 
         userRepository.save(user);
 
-        // Tạo JWT token cho user mới đăng ký
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-
-        LoginResponse response = LoginResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .name(user.getDisplayName())
-                .role(user.getRole().name())
-                .id(user.getId())
-                .build();
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Đăng ký thành công");
+        response.put("email", user.getEmail());
 
         return ResponseEntity.status(201).body(response);
     }
