@@ -21,6 +21,7 @@ public class SongDTO {
     private String audioUrl;
     private String thumbnailUrl;
     private String duration;
+    private String lyric;
 
     public SongDTO(Song song) {
         if (song != null) {
@@ -35,6 +36,7 @@ public class SongDTO {
             this.audioUrl = song.getAudioUrl();
             this.thumbnailUrl = song.getThumbnailUrl();
             this.duration = song.getDuration();
+            this.lyric = song.getLyric();
         }
     }
 }

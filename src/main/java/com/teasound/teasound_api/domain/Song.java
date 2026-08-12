@@ -47,6 +47,9 @@ public class Song {
     @Column(nullable = false)
     private String audioUrl;
 
+    @Column(name = "lyric", columnDefinition = "TEXT")
+    private String lyric;
+
     @Column(nullable = false)
     private String thumbnailUrl;
     private String duration;

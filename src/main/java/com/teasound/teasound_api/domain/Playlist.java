@@ -26,6 +26,7 @@ public class Playlist {
     @Column(columnDefinition = "LONGTEXT")
     private String coverImage;
 
+    @Column(name = "is_public")
     private boolean isPublic = true;
 
     @ManyToOne(fetch = FetchType.LAZY)

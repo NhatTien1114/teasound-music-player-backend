@@ -65,6 +65,7 @@ public class SongService {
         existSong.setAudioUrl(updatedSong.getAudioUrl());
         existSong.setThumbnailUrl(updatedSong.getThumbnailUrl());
         existSong.setDuration(updatedSong.getDuration());
+        existSong.setLyric(updatedSong.getLyric());
         Song savedSong = songRepository.save(existSong);
         return new SongDTO(savedSong);
     }
