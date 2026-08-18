@@ -4,16 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.AccessLevel;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponse {
-    private String token;
-    private String email;
-    private String name;
-    private String avatarUrl;
-    private String role;
-    private Long id;
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
+public class ApiResponse<T> {
+    int code;
+    String message;
+    T result;
 }

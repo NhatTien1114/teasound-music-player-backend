@@ -1,11 +1,20 @@
 package com.teasound.teasound_api.dto.request;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.FieldDefaults;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginRequest {
-    private String email;
-    private String password;
-    private String displayName;
-    private String phoneNumber;
+    String email;
+    String password;
+    String displayName;
+    String phoneNumber;
 }

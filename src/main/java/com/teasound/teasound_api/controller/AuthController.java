@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.teasound.teasound_api.domain.User;
 import com.teasound.teasound_api.dto.request.LoginRequest;
+import com.teasound.teasound_api.dto.response.ApiResponse;
 import com.teasound.teasound_api.dto.response.LoginResponse;
 import com.teasound.teasound_api.repository.UserRepository;
 import com.teasound.teasound_api.security.JwtUtil;
@@ -89,11 +90,8 @@ public class AuthController {
         }
     }
 
-    /**
-     * Login bằng email/password → trả JWT token qua JSON response.
-     */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest loginRequest) {
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -114,12 +112,26 @@ public class AuthController {
                     .id(user.getId())
                     .build();
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(200)
+                    .body(ApiResponse.<LoginResponse>builder()
+                            .code(200)
+                            .message("Login successfully")
+                            .result(response)
+                            .build());
         } catch (BadCredentialsException e) {
-            Map<String, Object> error = new HashMap<>();
-            error.put("error", "Invalid credentials");
-            error.put("message", "Email hoặc mật khẩu không chính xác");
-            return ResponseEntity.status(401).body(error);
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.<LoginResponse>builder()
+                            .code(401)
+                            .message("Invalid credentials")
+                            .result(null)
+                            .build());
+        } catch (Exception e) {
+            return ResponseEntity.status(500)
+                    .body(ApiResponse.<LoginResponse>builder()
+                            .code(500)
+                            .message("Internal server error")
+                            .result(null)
+                            .build());
         }
     }
 
@@ -167,7 +179,8 @@ public class AuthController {
     }
 
     /**
-     * Đăng ký user mới → trả JSON response (sau khi thành công frontend sẽ chuyển sang trang login).
+     * Đăng ký user mới → trả JSON response (sau khi thành công frontend sẽ chuyển
+     * sang trang login).
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody LoginRequest registerRequest) {

@@ -34,6 +34,11 @@ import com.teasound.teasound_api.security.OAuth2LoginSuccessHandler;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+        private final String[] URL_ALLOW = {
+                        "/api/auth/**", "/oauth2/**", "/login/**",
+                        "/api/songs/**", "/api/authors/**", "/api/playlists/**", "/api/history/**"
+        };
+
         @Value("${app.frontend-url}")
         private String frontendUrl;
 
@@ -50,10 +55,7 @@ public class SecurityConfig {
                                 .sessionManagement(session -> session
                                                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
-                                                .requestMatchers(HttpMethod.GET, "/api/songs/**",
-                                                                "/api/authors/**", "/api/playlists/**",
-                                                                "/api/history/**")
+                                                .requestMatchers(HttpMethod.GET, URL_ALLOW)
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/songs/**",
                                                                 "/api/authors/**", "/api/playlists/**")
