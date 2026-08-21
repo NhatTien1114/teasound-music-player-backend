@@ -2,8 +2,10 @@ package com.teasound.teasound_api.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import com.teasound.teasound_api.enums.AuthProvider;
+import com.teasound.teasound_api.enums.Role;
 
 @Entity
 @Table(name = "users")
@@ -65,18 +67,5 @@ public class User {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    // ── Enums ───────────────────────────────────
-    public enum Role {
-        USER, ADMIN
-    }
-
-    public enum AuthProvider {
-        LOCAL, GOOGLE
-    }
-
-    public enum Gender {
-        MALE, FEMALE
     }
 }

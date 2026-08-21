@@ -53,9 +53,12 @@ public class SecurityConfig {
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                                 .csrf(csrf -> csrf.disable())
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(HttpMethod.GET, URL_ALLOW)
+                                                .permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/api/auth/login/**",
+                                                                "/api/auth/register/**")
                                                 .permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/api/songs/**",
                                                                 "/api/authors/**", "/api/playlists/**")

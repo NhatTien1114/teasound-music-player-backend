@@ -10,6 +10,7 @@ import com.teasound.teasound_api.dto.response.AuthorResponse;
 import com.teasound.teasound_api.service.AuthorService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,12 +29,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RestController
 @RequestMapping("/api/authors")
 @RequiredArgsConstructor
+@Slf4j
 public class AuthorController {
     private final AuthorService authorService;
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create")
     public ResponseEntity<ApiResponse<AuthorResponse>> createAuthor(@RequestBody CreateAuthorRequest request) {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("Role: {}", authentication.getAuthorities());
         ApiResponse<AuthorResponse> response = authorService.createAuthor(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

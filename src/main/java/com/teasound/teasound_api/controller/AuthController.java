@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.teasound.teasound_api.domain.User;
+import com.teasound.teasound_api.enums.AuthProvider;
+import com.teasound.teasound_api.enums.Role;
 import com.teasound.teasound_api.dto.request.LoginRequest;
 import com.teasound.teasound_api.dto.response.ApiResponse;
 import com.teasound.teasound_api.dto.response.LoginResponse;
@@ -39,11 +41,6 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
 
-    /**
-     * Trao đổi token sau khi Google OAuth2 login:
-     * Đọc token từ HttpOnly Cookie "oauth2_token", xóa cookie đó và trả token về
-     * JSON cho frontend.
-     */
     @PostMapping("/token-exchange")
     public ResponseEntity<?> exchangeOAuth2Token(
             @CookieValue(name = "oauth2_token", required = false) String oauth2Token) {
@@ -135,10 +132,6 @@ public class AuthController {
         }
     }
 
-    /**
-     * Kiểm tra trạng thái đăng nhập và trả về thông tin user.
-     * Frontend gọi endpoint này (với Bearer token) để biết user đã đăng nhập chưa.
-     */
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -178,10 +171,6 @@ public class AuthController {
                 });
     }
 
-    /**
-     * Đăng ký user mới → trả JSON response (sau khi thành công frontend sẽ chuyển
-     * sang trang login).
-     */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody LoginRequest registerRequest) {
         String email = registerRequest.getEmail();
@@ -210,8 +199,8 @@ public class AuthController {
                 .displayName(displayName != null && !displayName.isBlank() ? displayName : email.split("@")[0])
                 .phoneNumber(phoneNumber)
                 .password(passwordEncoder.encode(password))
-                .role(User.Role.USER)
-                .authProvider(User.AuthProvider.LOCAL)
+                .role(Role.USER)
+                .authProvider(AuthProvider.LOCAL)
                 .isActive(true)
                 .isPremium(false)
                 .build();

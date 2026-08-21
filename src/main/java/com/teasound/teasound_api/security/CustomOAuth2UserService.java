@@ -1,6 +1,8 @@
 package com.teasound.teasound_api.security;
 
 import com.teasound.teasound_api.domain.User;
+import com.teasound.teasound_api.enums.AuthProvider;
+import com.teasound.teasound_api.enums.Role;
 import com.teasound.teasound_api.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -50,8 +52,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     .email(email)
                     .displayName(name != null ? name : email)
                     .avatarUrl(picture)
-                    .role(User.Role.USER)
-                    .authProvider(User.AuthProvider.GOOGLE)
+                    .role(Role.USER)
+                    .authProvider(AuthProvider.GOOGLE)
                     .isActive(true)
                     .isPremium(false)
                     .build();
